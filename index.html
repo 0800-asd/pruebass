@@ -4,7 +4,6 @@
   <title>Página HTML personalizada</title>
   <style>
     @import url('https://fonts.googleapis.com/css2?family=Chillax+Sans+Serif&display=swap');
-    
 
     body {
       background-color: black;
@@ -47,13 +46,13 @@
       width: 200px;
       height: 200px;
     }
-    
+
     #map-pin {
       width: 18px;
       height: 18px;
       margin-right: 5px;
     }
-    
+
     #profile-container h1 {
       display: flex;
       align-items: center;
@@ -63,22 +62,53 @@
     #ip-address {
       font-size: 8px;
     }
-    
+
+    #spotify-embed {
+      width: 0px;
+      height: 0px;
+      margin-top: 0px;
+    }
   </style>
 </head>
 <body>
   <video id="video-background" autoplay sinline muted loop>
-    <source src="https://cdn.discordapp.com/attachments/1107128683522703411/1112924573369892905/y2mate.com_-_KHEA_Tengo_30_ft_Duki_Neo_Pistea_Cazzu_Tali_Goya_Prod_Asan_1080p.mp4" type="video/mp4">
+    <source src="" type="video/mp4">
   </video>
-  <audio id="my-audio">
-    <source src="https://cdn.discordapp.com/attachments/1107128683522703411/1112927191706112120/y2mate.com_-_KHEA_Tengo_30_ft_Duki_Neo_Pistea_Cazzu_Tali_Goya_Prod_Asan.mp3" type="audio/mpeg">
-  </audio>
   <div id="profile-container">
-    <img id="profile-pic" src="https://cdn.solo.to/user/a/646378e1cb4ac3_74148785.jpg" alt="Foto de perfil">
-    <h1><img id="map-pin" src="https://cdn.solo.to/images/map-pin.svg" alt="Pin de mapa"> Argentina</h1>
+    <img id="profile-pic" src="https://cdn.discordapp.com/attachments/1107128683522703411/1113157227067473930/a_e3322e29d53a0a311c8596bd1c8fbb20.gif" alt="Foto de perfil">
+    <h1><img id="map-pin" src="https://cdn.solo.to/images/map-pin.svg" alt="Pin"> Argentina</h1>
     <h1>doxbin.org/24k</h1>
     <h1> </h1>
-    </script>
+    <iframe id="spotify-embed" src="https://open.spotify.com/track/6zCnkDNYK9IJi1WOTNp5h2?si=2783fecf079f4189" frameborder="0" allowtransparency="true" allow="encrypted-media"></iframe>
   </div>
+
+  <script>
+    function removeSpotifyEmbed() {
+      var embedElement = document.getElementById("spotify-embed");
+      if (embedElement) {
+        embedElement.parentNode.removeChild(embedElement);
+      }
+    }
+
+    window.addEventListener("message", function(event) {
+      if (event.origin === "https://open.spotify.com" && event.data === "ready") {
+        removeSpotifyEmbed();
+      }
+    });
+
+    function getRandomVideoURL() {
+      var videoUrls = [
+        "https://cdn.discordapp.com/attachments/1107128683522703411/1113156690376925185/colombianamp4.mp4",
+        "https://cdn.discordapp.com/attachments/1107128683522703411/1113156846258229248/hitboy.mp4"
+      ];
+      var randomIndex = Math.floor(Math.random() * videoUrls.length);
+      return videoUrls[randomIndex];
+    }
+
+    var videoBackground = document.getElementById("video-background");
+    var sourceElement = videoBackground.getElementsByTagName("source")[0];
+    sourceElement.setAttribute("src", getRandomVideoURL());
+    videoBackground.load();
+  </script>
 </body>
 </html>
