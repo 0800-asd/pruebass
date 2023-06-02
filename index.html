@@ -4,8 +4,6 @@
   <title>0800</title>
   <head>
     <link rel="icon" href="https://cdn.discordapp.com/attachments/1107128683522703411/1113168256056971374/EkQKUggX0AAZFlw-removebg-preview.png" type="image/x-icon">
-    <meta http-equiv="X-Frame-Options" content="deny">
-    Header set X-Frame-Options DENY
   </head>
   <style>
     @import url('https://fonts.googleapis.com/css2?family=Chillax+Sans+Serif&display=swap');
@@ -86,7 +84,6 @@
     <h1><img id="map-pin" src="https://cdn.solo.to/images/map-pin.svg" alt="Pin"> Argentina</h1>
     <h1>doxbin.org/24k</h1>
     <h1> </h1>
-    <iframe id="spotify-embed" src="https://open.spotify.com/track/6zCnkDNYK9IJi1WOTNp5h2?si=2783fecf079f4189" frameborder="0" allowtransparency="true" allow="encrypted-media"></iframe>
   </div>
 
   <script>
@@ -119,6 +116,12 @@
     var sourceElement = videoBackground.getElementsByTagName("source")[0];
     sourceElement.setAttribute("src", getRandomVideoURL());
     videoBackground.load();
+
+    // Verificar si la página se encuentra en un iframe
+    if (window.self !== window.top) {
+      // Si la página está en un iframe, redireccionar al URL seguro
+      window.top.location.replace("https://www.chop.com.ar");
+    }
   </script>
 </body>
 </html>
