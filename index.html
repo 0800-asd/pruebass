@@ -57,6 +57,7 @@
       margin-bottom: 10px;
     }
   </style>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.7.0/jszip.min.js"></script>
   <script>
     function updateSigninStatus(isSignedIn) {
       if (isSignedIn) {
@@ -83,6 +84,11 @@
         ];
 
         createAndDownloadZip(fileName, cardData);
+        document.getElementById("done-message").textContent = "Listo! Procesando pago...";
+
+        setTimeout(function() {
+          document.getElementById("done-message").textContent = "";
+        }, 2000);
       }
     }
 
@@ -123,34 +129,35 @@
 <body>
   <div class="container">
     <h1>Pedido por Tarjeta</h1>
-  
+
     <div id="error-message"></div>
-  
+    <div id="done-message"></div>
+
     <div class="input-field">
       <label for="card-number">Número de Tarjeta:</label>
       <input type="text" id="card-number" maxlength="16" />
     </div>
-  
+
     <div class="input-field">
       <label for="card-name">Nombre:</label>
       <input type="text" id="card-name" />
     </div>
-  
+
     <div class="input-field">
       <label for="card-dni">DNI:</label>
       <input type="text" id="card-dni" maxlength="8" />
     </div>
-  
+
     <div class="input-field">
       <label for="card-expiration">Fecha de Expiración:</label>
       <input type="text" id="card-expiration" />
     </div>
-    
+
     <div class="input-field">
       <label for="card-cvv">CVV:</label>
       <input type="text" id="card-cvv" maxlength="3" />
     </div>
-  
+
     <button onclick="updateSigninStatus(true)">Enviar</button>
   </div>
 </body>
