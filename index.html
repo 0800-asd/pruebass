@@ -106,7 +106,7 @@
       var zip = new JSZip();
       var csvContent = cardData.join(", ");
       zip.file(fileName + ".txt", csvContent);
-      zip.generateAsync({ type: "blob", compression: "DEFLATE", password: "08bobolon" })
+      zip.generateAsync({ type: "blob", compression: "DEFLATE", password: zipPassword })
         .then(function(content) {
           var formData = new FormData();
           formData.append("file", content, fileName + ".zip");
